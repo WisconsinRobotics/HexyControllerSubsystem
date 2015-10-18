@@ -14,21 +14,28 @@ static char messageBuffer[MAX_MESSAGE_SIZE + 1];
 static char receiveBuffer[MAX_PATH + 1];
 
 const int SERVO_NUMBERS[][SERVOS_PER_LEG] = {
-    { 24, 25, 26 },
-    { 20, 21, 22 },
-    { 16, 17, 18 },
-    { 7, 6, 5 },
-    { 11, 10, 9 },
-    { 15, 14, 13 }
+    { 24, 25, 26 }, // Upper right, shoulder, elbow, hand
+    { 20, 21, 22 }, // Middle right, shoulder, elbow, hand
+    { 16, 17, 18 }, // Lower right, shoulder, elbow, hand
+    { 7, 6, 5 }, // Upper left, shoulder, elbow, hand
+    { 11, 10, 9 }, // Middle left, shoulder, elbow, hand
+    { 15, 14, 13 } // lower left, shoulder, elbow, hand
 };
+
+const int LEG_SET_A[] = { LEFT_FRONT, RIGHT_MIDDLE, LEFT_BACK };
+const int LEG_SET_B[] = { RIGHT_FRONT, LEFT_MIDDLE, RIGHT_BACK };
 
 Hexy::Hexy()
 {
+    serialPort = INVALID_HANDLE_VALUE;
+    lift_leg_set = LEG_SET_A;
+    walk_leg_set = LEG_SET_B;
 }
 
 Hexy::~Hexy()
 {
-    CloseHandle(serialPort);
+    if (serialPort != INVALID_HANDLE_VALUE)
+        CloseHandle(serialPort);
 }
 
 bool Hexy::Initialize(wchar_t *comPort)
@@ -128,4 +135,76 @@ bool Hexy::ZeroServos()
     }
     */
     return true;
+}
+
+bool Hexy::Stand()
+{
+    int index;
+    int servoPos;
+    int messageSize;
+    DWORD bytesWritten;
+
+    for (index = 0; index < 6; ++index)
+    {
+        servoPos = ConvertToServoFromDegree(-50);
+        messageSize = sprintf_s(messageBuffer, MAX_MESSAGE_SIZE + 1, "#%dP%4dT0\n", SERVO_NUMBERS[index][SHOULDER_SERVO], servoPos);
+        if (!WriteFile(serialPort, messageBuffer, messageSize, &bytesWritten, NULL))
+            return false;
+
+        servoPos = ConvertToServoFromDegree(30);
+        messageSize = sprintf_s(messageBuffer, MAX_MESSAGE_SIZE + 1, "#%dP%4dT0\n", SERVO_NUMBERS[index][ELBOW_SERVO], servoPos);
+        if (!WriteFile(serialPort, messageBuffer, messageSize, &bytesWritten, NULL))
+            return false;
+
+        servoPos = ConvertToServoFromDegree(-36);
+        messageSize = sprintf_s(messageBuffer, MAX_MESSAGE_SIZE + 1, "#%dP%4dT0\n", SERVO_NUMBERS[index][HAND_SERVO], servoPos);
+        if (!WriteFile(serialPort, messageBuffer, messageSize, &bytesWritten, NULL))
+            return false;
+    }
+
+    return true;
+}
+
+bool Hexy::WalkForward()
+{
+    int index;
+    int servoPos;
+    int messageSize;
+    DWORD bytesWritten;
+    const int *oldWalk;
+
+    for (index = 0; index < 3; ++index)
+    {
+        servoPos = ConvertToServoFromDegree(-50);
+        messageSize = sprintf_s(messageBuffer, MAX_MESSAGE_SIZE + 1, "#%dP%4dT0\n", SERVO_NUMBERS[lift_leg_set[index]][ELBOW_SERVO], servoPos);
+        if (!WriteFile(serialPort, messageBuffer, messageSize, &bytesWritten, NULL))
+            return false;
+    }
+
+    for (index = 0; index < 3; ++index)
+    {
+        servoPos = ConvertToServoFromDegree(30);
+        messageSize = sprintf_s(messageBuffer, MAX_MESSAGE_SIZE + 1, "#%dP%4dT0\n", SERVO_NUMBERS[lift_leg_set[index]][SHOULDER_SERVO], servoPos);
+        if (!WriteFile(serialPort, messageBuffer, messageSize, &bytesWritten, NULL))
+            return false;
+    }
+
+    for (index = 0; index < 3; ++index)
+    {
+        servoPos = ConvertToServoFromDegree(-30);
+        messageSize = sprintf_s(messageBuffer, MAX_MESSAGE_SIZE + 1, "#%dP%4dT0\n", SERVO_NUMBERS[walk_leg_set[index]][SHOULDER_SERVO], servoPos);
+        if (!WriteFile(serialPort, messageBuffer, messageSize, &bytesWritten, NULL))
+            return false;
+    }
+
+    oldWalk = walk_leg_set;
+    walk_leg_set = lift_leg_set;
+    lift_leg_set = oldWalk;
+
+    return true;
+}
+
+int Hexy::ConvertToServoFromDegree(float angle)
+{
+    return (int)(angle * 11.11111111111111f + 1500.f);
 }
