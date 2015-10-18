@@ -120,21 +120,6 @@ bool Hexy::ZeroServos()
         return false;
 
     return true;
-    // #%dP%.4dT0\r
-    /*
-    int legIndex;
-    int servoIndex;
-    int messageSize;
-
-    for (legIndex = 0; legIndex < LEGS; ++legIndex)
-    {
-    for (servoIndex = 0; servoIndex < SERVOS_PER_LEG; ++servoIndex)
-    {
-    messageSize = sprintf_s(messageBuffer, MAX_MESSAGE_SIZE + 1, "#%dP%4dT0\r", SERVO_NUMBERS[legIndex][servoIndex], SERVO_RESET);
-    }
-    }
-    */
-    return true;
 }
 
 bool Hexy::Stand()
