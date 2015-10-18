@@ -153,33 +153,21 @@ bool Hexy::Stand()
 bool Hexy::WalkForward()
 {
     int index;
-    int servoPos;
-    int messageSize;
-    DWORD bytesWritten;
     const int *oldWalk;
 
     for (index = 0; index < 3; ++index)
     {
-        servoPos = ConvertToServoFromDegree(-50);
-        messageSize = sprintf_s(messageBuffer, MAX_MESSAGE_SIZE + 1, "#%dP%4dT0\n", SERVO_NUMBERS[lift_leg_set[index]][ELBOW_SERVO], servoPos);
-        if (!WriteFile(serialPort, messageBuffer, messageSize, &bytesWritten, NULL))
-            return false;
+        SetServoPosition(SERVO_NUMBERS[lift_leg_set[index]][ELBOW_SERVO], -50);
     }
 
     for (index = 0; index < 3; ++index)
     {
-        servoPos = ConvertToServoFromDegree(30);
-        messageSize = sprintf_s(messageBuffer, MAX_MESSAGE_SIZE + 1, "#%dP%4dT0\n", SERVO_NUMBERS[lift_leg_set[index]][SHOULDER_SERVO], servoPos);
-        if (!WriteFile(serialPort, messageBuffer, messageSize, &bytesWritten, NULL))
-            return false;
+        SetServoPosition(SERVO_NUMBERS[lift_leg_set[index]][SHOULDER_SERVO], 30);
     }
 
     for (index = 0; index < 3; ++index)
     {
-        servoPos = ConvertToServoFromDegree(-30);
-        messageSize = sprintf_s(messageBuffer, MAX_MESSAGE_SIZE + 1, "#%dP%4dT0\n", SERVO_NUMBERS[walk_leg_set[index]][SHOULDER_SERVO], servoPos);
-        if (!WriteFile(serialPort, messageBuffer, messageSize, &bytesWritten, NULL))
-            return false;
+        SetServoPosition(SERVO_NUMBERS[walk_leg_set[index]][SHOULDER_SERVO], -30);
     }
 
     oldWalk = walk_leg_set;
@@ -192,4 +180,18 @@ bool Hexy::WalkForward()
 int Hexy::ConvertToServoFromDegree(float angle)
 {
     return (int)(angle * 11.11111111111111f + 1500.f);
+}
+
+bool Hexy::SetServoPosition(int servoNum, float angle)
+{
+    int servoPos;
+    int messageSize;
+    DWORD bytesWritten;
+
+    servoPos = ConvertToServoFromDegree(angle);
+    messageSize = sprintf_s(messageBuffer, MAX_MESSAGE_SIZE + 1, "#%dP%4dT0\n", servoNum, servoPos);
+    if (!WriteFile(serialPort, messageBuffer, messageSize, &bytesWritten, NULL))
+        return false;
+
+    return true;
 }

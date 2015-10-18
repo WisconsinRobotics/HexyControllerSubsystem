@@ -32,6 +32,7 @@ public:
     bool ZeroServos();
     bool Stand();
     bool WalkForward();
+    bool SetServoPosition(int servoNum, float angle);
     int ConvertToServoFromDegree(float angle);
 
 private:
