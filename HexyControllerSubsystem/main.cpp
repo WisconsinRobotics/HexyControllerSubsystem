@@ -11,6 +11,15 @@ int main()
         return -1;
 
     hexy.ZeroServos();
+    Sleep(1000);
+
+    hexy.Stand();
+
+    while (true)
+    {
+        Sleep(1000);
+        hexy.WalkForward();
+    }
 
     return 0;
 }

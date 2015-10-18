@@ -157,7 +157,7 @@ bool Hexy::WalkForward()
 
     for (index = 0; index < 3; ++index)
     {
-        SetServoPosition(SERVO_NUMBERS[lift_leg_set[index]][ELBOW_SERVO], -50);
+        SetServoPosition(SERVO_NUMBERS[lift_leg_set[index]][ELBOW_SERVO], -30);
     }
 
     for (index = 0; index < 3; ++index)
@@ -168,6 +168,11 @@ bool Hexy::WalkForward()
     for (index = 0; index < 3; ++index)
     {
         SetServoPosition(SERVO_NUMBERS[walk_leg_set[index]][SHOULDER_SERVO], -30);
+    }
+
+    for (index = 0; index < 3; ++index)
+    {
+        SetServoPosition(SERVO_NUMBERS[lift_leg_set[index]][ELBOW_SERVO], 30);
     }
 
     oldWalk = walk_leg_set;
